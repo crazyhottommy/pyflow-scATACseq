@@ -1,0 +1,3 @@
+sample	bam_path	cluster_id.csv
+VirginMale	/n/scratchlfs/informatics/mtang/VirginMales/outs/possorted_bam.bam	/n/scratchlfs/informatics/mtang/virginMale_clusters.csv
+father	/n/scratchlfs/informatics/mtang/Fathers/outs/possorted_bam.bam	/n/scratchlfs/informatics/mtang/father_clusters.csv
