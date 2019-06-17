@@ -1,6 +1,5 @@
 
-cluster_id.csv: "virginMale_clusters.csv"
-merged_scATACseq_bam: "possorted_bam.bam"
+SAMPLES_JSON: 'samples.json'
 ## prefix of the splitted bam. final name will be: prefix_cluster_1.bam
 prefix: "VirginMale"
 
