@@ -4,3 +4,6 @@ SAMPLES_JSON: 'samples.json'
 prefix: "VirginMale"
 
 bamCoverage_args: "--ignoreDuplicates --skipNonCoveredRegions --normalizeUsing CPM --extendReads --binSize 1"
+Generich_args: "-j -y -r -e chrM -v"
+
+black_list: "data/mm10.blacklist.bed.gz"
