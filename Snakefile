@@ -42,6 +42,7 @@ for sample in SAMPLES:
 TARGET.extend(CLUSTERS_BAMS)
 TARGET.extend(CLUSTERS_BAIS)
 TARGET.extend(CLUSTERS_BIGWIGS)
+TARGET.extend(PEAKS)
 
 rule all:
     input: TARGET
