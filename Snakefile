@@ -3,7 +3,7 @@ shell.suffix("; exitstat=$?; echo END at $(date); echo exit status was $exitstat
 
 configfile: "config.yaml"
 FILES = json.load(open(config['SAMPLES_JSON']))
-localrules: all remove_backlist
+localrules: all, remove_backlist
 
 
 ## avoid dynamic rules, read the cluster id file and determine the number of splitted bam
@@ -36,8 +36,8 @@ for sample in SAMPLES:
         format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
     CLUSTERS_BIGWIGS.extend(expand("02bigwigs/{sample}/{sample}_{{cluster_id}}.bw". \
         format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
-    PEAKS.exend(expand("05peak_filter/{sample}/{sample}_{cluster_id}_blacklist_removed.bed", \
-        format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1]))
+    PEAKS.extend(expand("05peak_filter/{sample}/{sample}_{{cluster_id}}_blacklist_removed.bed". \
+        format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
 
 TARGET.extend(CLUSTERS_BAMS)
 TARGET.extend(CLUSTERS_BAIS)
@@ -115,14 +115,13 @@ rule sort_bam_by_name:
 rule call_peaks:
     input: "03name_sorted_bam/{sample}/{sample}_{cluster_id}.name.sorted.bam"
     output: "04peak/{sample}/{sample}_{cluster_id}_Genrich.bed"
-    log: log1 = "00log/{sample}_{cluster_id}_Genrich.log1",
-        log2 ="00log/{sample}_{cluster_id}_Genrich.log2"
+    log: "00log/{sample}_{cluster_id}_Genrich.log"
     threads: 1
     params:
         custom = config.get("Generich_args", "")
     shell:
        """
-       Genrich -t {input} -o {output} {params.custom} -f {log1} 2> {log2}
+       Genrich -t {input} -o {output} {params.custom} 2> {log}
        """
 
 ### remove black listed regions
@@ -136,10 +135,9 @@ rule remove_backlist:
         bedtools intersect -a {input[0]} -b <(zcat {input[1]}) -v > {output}
 
         """
-######################################################################
-
-########         motif footprint using rgt_hint                #########
 
 ######################################################################
 
-#rule rgt_hint_motif:
+########         motif footprint using rgt_hint                #######
+
+######################################################################
