@@ -96,6 +96,8 @@ rule make_bigwig:
 
 ######################################################################
 
+## see https://twitter.com/lh3lh3/status/1129900399626981382
+## use samtools collate not samtools sort -n 
 rule sort_bam_by_name:
     input: "01split_bam/{sample}.split.touch", "01split_bam/{sample}/{sample}_{cluster_id}.bam.bai"
     output:"03name_sorted_bam/{sample}/{sample}_{cluster_id}.name.sorted.bam"
