@@ -1,0 +1,28 @@
+{
+    "__default__" :
+    {
+        "time" : "00:40:00",
+        "N" : 1,
+        "n": 1,
+        "mem": 4000,
+        "p" : "holy-info",
+        "name" : "{rule}.{wildcards}",
+        "output": "sbatch_log/{rule}.{wildcards}.out",
+        "error": "sbatch_log/{rule}.{wildcards}.err"
+    },
+    "split_scATAC_bam_by_cluster":
+    {
+        "time" : "6:00:00"
+    },
+    "index_bam":
+    {
+        "time": "1:00:00",
+        "mem": 4000
+    },
+    "make_bigwig":
+    {
+        "time" : "4:00:00",
+        "n" : 5,
+        "mem": 40960
+    }
+}
