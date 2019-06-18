@@ -54,9 +54,9 @@ fin = pysam.AlignmentFile(args.bam, "rb")
 fouts_dict = {}
 for cluster in clusters:
     if args.prefix:
-        fout_name = args.prefix + "_cluster_" + cluster + ".bam"
+        fout_name = args.prefix + "_" + cluster + ".bam"
     else:
-        fout_name = "cluster_" + cluster + ".bam"
+        fout_name = cluster + ".bam"
     if args.outdir:
         fout = pysam.AlignmentFile(os.path.join(args.outdir,fout_name), "wb", template = fin)
     else:
