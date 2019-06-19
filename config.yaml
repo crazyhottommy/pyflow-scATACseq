@@ -1,7 +1,5 @@
 
 SAMPLES_JSON: 'samples.json'
-## prefix of the splitted bam. final name will be: prefix_cluster_1.bam
-prefix: "VirginMale"
 
 bamCoverage_args: "--ignoreDuplicates --skipNonCoveredRegions --normalizeUsing CPM --extendReads --binSize 1"
 Generich_args: "-j -y -r -e chrM -v"

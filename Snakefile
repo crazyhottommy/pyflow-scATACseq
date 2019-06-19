@@ -109,7 +109,7 @@ rule sort_bam_by_name:
     shell:
         """
         samtools sort -n -m 2G -@ {threads} -T {wildcards.sample}_{wildcards.cluster_id} \
-        -o {output} out-cluster-10.bam \
+        -o {output} \
         01split_bam/{wildcards.sample}/{wildcards.sample}_{wildcards.cluster_id}.bam 2> {log}
         """
 
