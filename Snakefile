@@ -33,7 +33,7 @@ CLUSTERS_BIGWIGS = []
 PEAKS = []
 EXTEND_SUMMIT = []
 MERGED_BIGWIGS = expand("02merged_bigwigs/{cluster_id}.bw", cluster_id = get_cluster_id(FILES[SAMPLES[0]][1]))
-
+MERGED_EXTEND_SUMMIT = expand("06extend_summit_merge/{cluster_id}_extend_summit.bed", cluster_id = get_cluster_id(FILES[SAMPLES[0]][1]) )
 for sample in SAMPLES:
     CLUSTERS_BAIS.append(expand("01split_bam/{sample}/{sample}_{{cluster_id}}.bam.bai". \
         format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
@@ -51,7 +51,7 @@ TARGET.extend(CLUSTERS_BIGWIGS)
 TARGET.extend(PEAKS)
 TARGET.extend(EXTEND_SUMMIT)
 TARGET.extend(MERGED_BIGWIGS)
-
+TARGET.extend(MERGED_EXTEND_SUMMIT)
 rule all:
     input: TARGET
 
@@ -144,6 +144,59 @@ rule make_merged_bigwig:
     shell:
         """
         bamCoverage -b {input[0]} -p {threads} {params.custom} -o {output}
+        """
+
+
+rule sort_merge_bam_by_name:
+    input: "01merged_bam/{cluster_id}.bam", "01merged_bam/{cluster_id}.bam.bai"
+    output:"03name_sorted_merge_bam/{cluster_id}.name.sorted.bam"
+    log: "00log/{cluster_id}_name_sort_merge.log"
+    threads: 5
+    params:
+        custom = config.get("name_sort_bam_agrs", "")
+    message: "sorting {input} by name"
+    shell:
+        """
+        samtools sort -n -m 2G -@ {threads} -T {wildcards.cluster_id} \
+        -o {output} \
+        {input[0]} 2> {log}
+        """
+
+rule call_peaks_merge:
+    input: "03name_sorted_merge_bam/{cluster_id}.name.sorted.bam"
+    output: "04peak_merge/{cluster_id}_Genrich.bed"
+    log: "00log/{cluster_id}_Genrich.log"
+    threads: 1
+    params:
+        custom = config.get("Generich_args", "")
+    shell:
+       """
+       Genrich -t {input} -o {output} {params.custom} 2> {log}
+       """
+
+### remove black listed regions
+rule remove_backlist_merge:
+    input: "04peak_merge/{cluster_id}_Genrich.bed", config["black_list"]
+    output: "05peak_filter_merge/{cluster_id}_blacklist_removed.bed"
+    log: "00log/{cluster_id}_remove_blacklist.log"
+    threads: 1
+    shell:
+        """
+        bedtools intersect -a {input[0]} -b <(zcat {input[1]}) -v > {output}
+
+        """
+
+rule extend_summit_merge:
+    input: "05peak_filter_merge/{cluster_id}_blacklist_removed.bed"
+    output: summit = "06extend_summit_merge/{cluster_id}_summit.bed",
+            extend_summit = "06extend_summit_merge/{cluster_id}_extend_summit.bed"
+    log: "00log/{cluster_id}_extend_summit.log"
+    threads: 1
+    shell:
+        """
+        # the 10th column is the peak summit
+        cat {input} | awk -v OFS="\t" '$2=$2+$10,$3=$2+1' > {output.summit}
+        bedtools slop -i {output.summit} -g {config[genome_size]}  -b {config[extend_size]} > {output.extend_summit}
         """
 
 ######################################################################
