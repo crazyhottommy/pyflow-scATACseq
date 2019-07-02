@@ -9,8 +9,9 @@ localrules: all, remove_backlist
 ## avoid dynamic rules, read the cluster id file and determine the number of splitted bam
 ## cluster_id.csv should have no headers
 import csv
-SAMPLES = FILES.keys()
+SAMPLES = list(FILES.keys())
 
+## for samples are not clustered together, different sample may have different number of clusters
 def get_cluster_id(csv_file):
     cluster_ids = []
     with open(csv_file) as ifile:
@@ -31,6 +32,7 @@ CLUSTERS_BAIS = []
 CLUSTERS_BIGWIGS = []
 PEAKS = []
 EXTEND_SUMMIT = []
+MERGED_BIGWIGS = expand("02merged_bigwigs/{cluster_id}.bw", cluster_id = get_cluster_id(FILES[SAMPLES[0]][1]))
 
 for sample in SAMPLES:
     CLUSTERS_BAIS.append(expand("01split_bam/{sample}/{sample}_{{cluster_id}}.bam.bai". \
@@ -42,11 +44,13 @@ for sample in SAMPLES:
     EXTEND_SUMMIT.extend(expand("06extend_summit/{sample}/{sample}_{{cluster_id}}_extend_summit.bed". \
         format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
 
+
 TARGET.extend(CLUSTERS_BAMS)
 TARGET.extend(CLUSTERS_BAIS)
 TARGET.extend(CLUSTERS_BIGWIGS)
 TARGET.extend(PEAKS)
 TARGET.extend(EXTEND_SUMMIT)
+TARGET.extend(MERGED_BIGWIGS)
 
 rule all:
     input: TARGET
@@ -92,6 +96,54 @@ rule make_bigwig:
     shell:
         """
         bamCoverage -b 01split_bam/{wildcards.sample}/{wildcards.sample}_{wildcards.cluster_id}.bam -p {threads} {params.custom} -o {output}
+        """
+
+
+
+######################################################################
+
+###  merge bam files for the same cluster from different samples ####
+### different samples are merged together for cluster identification ##
+### so all the samples have the same number of clusters    ############
+
+######################################################################
+
+## note 01split_bam/{sample}/{sample}_{{cluster_id}}.bam is not any output from 
+## previous rules because I used the touch file to split the bam.
+## however, the bam.bai index is produced by previous rules, so I use it as input
+## and remove the .bai in params directive for shell to make it work.
+
+rule merge_bam_per_cluster:
+    input: expand("01split_bam/{sample}/{sample}_{{cluster_id}}.bam.bai", sample = SAMPLES)
+    output: "01merged_bam/{cluster_id}.bam"
+    params:
+            bam = lambda wildcards, input: " ".join(input).replace(".bai", "")
+    log: "00log/{cluster_id}.merge_bam.log"
+    threads: 2
+    shell:
+        """
+        samtools merge -@ 2 -r {output} {params.bam}
+        """
+
+rule index_merged_bam:
+    input: "01merged_bam/{cluster_id}.bam"
+    output: "01merged_bam/{cluster_id}.bam.bai"
+    shell:
+        """
+        samtools index {input}
+        """
+
+rule make_merged_bigwig:
+    input: "01merged_bam/{cluster_id}.bam", "01merged_bam/{cluster_id}.bam.bai"
+    output: "02merged_bigwigs/{cluster_id}.bw"
+    log: "00log/{cluster_id}_make_merge_bigwig.log"
+    threads: 5
+    params:
+        custom= config.get("bamCoverage_args", "")
+    message: "making bigwig files for {input} with {threads} threads"
+    shell:
+        """
+        bamCoverage -b {input[0]} -p {threads} {params.custom} -o {output}
         """
 
 ######################################################################
