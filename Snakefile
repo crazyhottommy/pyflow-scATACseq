@@ -30,6 +30,7 @@ CLUSTERS_BAMS = expand("01split_bam/{sample}.split.touch", sample = SAMPLES)
 CLUSTERS_BAIS = []
 CLUSTERS_BIGWIGS = []
 PEAKS = []
+EXTEND_SUMMIT = []
 
 for sample in SAMPLES:
     CLUSTERS_BAIS.append(expand("01split_bam/{sample}/{sample}_{{cluster_id}}.bam.bai". \
@@ -38,11 +39,14 @@ for sample in SAMPLES:
         format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
     PEAKS.extend(expand("05peak_filter/{sample}/{sample}_{{cluster_id}}_blacklist_removed.bed". \
         format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
+    EXTEND_SUMMIT.extend(expand("06extend_summit/{sample}/{sample}_{{cluster_id}}_extend_summit.bed". \
+        format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
 
 TARGET.extend(CLUSTERS_BAMS)
 TARGET.extend(CLUSTERS_BAIS)
 TARGET.extend(CLUSTERS_BIGWIGS)
 TARGET.extend(PEAKS)
+TARGET.extend(EXTEND_SUMMIT)
 
 rule all:
     input: TARGET
@@ -137,6 +141,57 @@ rule remove_backlist:
         bedtools intersect -a {input[0]} -b <(zcat {input[1]}) -v > {output}
 
         """
+
+rule extend_summit:
+    input: "05peak_filter/{sample}/{sample}_{cluster_id}_blacklist_removed.bed"
+    output: summit = "06extend_summit/{sample}/{sample}_{cluster_id}_summit.bed",
+            extend_summit = "06extend_summit/{sample}/{sample}_{cluster_id}_extend_summit.bed"
+    log: "00log/{sample}_{cluster_id}_extend_summit.log"
+    threads: 1
+    shell:
+        """
+        # the 10th column is the peak summit
+        cat {input} | awk -v OFS="\t" '$2=$2+$10,$3=$2+1' > {output.summit}
+        bedtools slop -i {output.summit} -g {config[genome_size]}  -b {config[extend_size]} > {output.extend_summit}
+        """
+
+######################################################################
+
+########   merge all peaks and recount reads in peaks per cell #######
+
+######################################################################
+
+def get_extend_summit(wildcards):
+    sample = wildcards.sample
+    cluster_id = get_cluster_id(FILES[wildcards.sample][1])
+    return expand("06extend_summit/{sample}/{sample}_{cluster_id}_extend_summit.bed", \
+        sample = sample, cluster_id = cluster_id)
+
+
+rule merge_extend_summit:
+    input: get_extend_summit
+    output: "07recount/{sample}/{sample}_merged_peaks.bed"
+    shell:
+        """
+        
+        cat {input} | sort -k1,1 -k2,2n | bedtools merge > {output}
+
+        """
+
+rule recount:
+    input: bed = "07recount/{sample}/{sample}_merged_peaks.bed",
+           bam = lambda wildcards: FILES[wildcards.sample][0]
+    output: "07recount/"
+    log: "00log/recount.log"
+    threads: 1
+    shell:
+        """
+        scripts/rcbbc_v02 -w {config["white_list"]} -p {wildcards.sample} {input.bed} {input.bam} 
+        """
+
+
+
+
 
 ######################################################################
 

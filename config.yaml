@@ -2,6 +2,13 @@
 SAMPLES_JSON: 'samples.json'
 
 bamCoverage_args: "--ignoreDuplicates --skipNonCoveredRegions --normalizeUsing CPM --extendReads --binSize 1"
-Generich_args: "-j -y -r -e chrM -v"
+Generich_args: "-j -y -r -e chrM -v -p 0.01 -a 200"
 
 black_list: "data/mm10.blacklist.bed.gz"
+
+### extending summit size to both ends
+genome_size: data/mm10_chrom_size.txt
+extend_size: 250
+
+### single-cell white-list for recounting
+white_list: barcodes.tsv
