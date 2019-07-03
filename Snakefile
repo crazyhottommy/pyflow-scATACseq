@@ -3,12 +3,13 @@ shell.suffix("; exitstat=$?; echo END at $(date); echo exit status was $exitstat
 
 configfile: "config.yaml"
 FILES = json.load(open(config['SAMPLES_JSON']))
-localrules: all, remove_backlist
+localrules: all, remove_backlist, remove_backlist_merge, extend_summit, extend_summit_merge
 
 
 ## avoid dynamic rules, read the cluster id file and determine the number of splitted bam
 ## cluster_id.csv should have no headers
 import csv
+from collections import defaultdict 
 SAMPLES = list(FILES.keys())
 
 ## for samples are not clustered together, different sample may have different number of clusters
@@ -32,8 +33,6 @@ CLUSTERS_BAIS = []
 CLUSTERS_BIGWIGS = []
 PEAKS = []
 EXTEND_SUMMIT = []
-MERGED_BIGWIGS = expand("02merged_bigwigs/{cluster_id}.bw", cluster_id = get_cluster_id(FILES[SAMPLES[0]][1]))
-MERGED_EXTEND_SUMMIT = expand("06extend_summit_merge/{cluster_id}_extend_summit.bed", cluster_id = get_cluster_id(FILES[SAMPLES[0]][1]) )
 for sample in SAMPLES:
     CLUSTERS_BAIS.append(expand("01split_bam/{sample}/{sample}_{{cluster_id}}.bam.bai". \
         format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
@@ -43,6 +42,40 @@ for sample in SAMPLES:
         format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
     EXTEND_SUMMIT.extend(expand("06extend_summit/{sample}/{sample}_{{cluster_id}}_extend_summit.bed". \
         format(sample = sample), cluster_id = get_cluster_id(FILES[sample][1])))
+
+### for merged bam files
+map_sample_to_cluster = defaultdict(list)
+
+for sample in SAMPLES:
+    map_sample_to_cluster[sample].extend(get_cluster_id(FILES[sample][1]))
+
+CLUSTERS = []
+for sample in map_sample_to_cluster:
+    CLUSTERS.extend(map_sample_to_cluster[sample])
+CLUSTERS = sorted(set(CLUSTERS))
+
+
+## some clusters only present in certain samples, when merge the same cluster from different 
+## samples, this need to be taken care of.
+
+## e.g.
+## {'A':['1','2','3'], 'B':['1','2'], 'C':['1']}
+## {'1':['A', 'B', 'C'], '2':['A','B'], '3':[1]}
+
+## for cluster 1, merge bam from A B C samples
+## for cluster 2 merge bam from A B samples
+## for cluster 3 merge bam only from A sample.
+
+map_cluster_to_sample = defaultdict(list)
+for k,v in map_sample_to_cluster.items():
+    for x in v:
+        map_cluster_to_sample[x].append(k)
+
+ 
+
+MERGED_BIGWIGS = expand("02merged_bigwigs/{cluster_id}.bw", cluster_id = CLUSTERS)
+MERGED_EXTEND_SUMMIT = expand("06extend_summit_merge/{cluster_id}_extend_summit.bed", cluster_id = CLUSTERS )
+
 
 
 TARGET.extend(CLUSTERS_BAMS)
@@ -113,8 +146,13 @@ rule make_bigwig:
 ## however, the bam.bai index is produced by previous rules, so I use it as input
 ## and remove the .bai in params directive for shell to make it work.
 
+
+def get_merge_bam_input(wildcards):
+    samples = map_cluster_to_sample[wildcards.cluster_id]
+    return expand("01split_bam/{sample}/{sample}_{{cluster_id}}.bam.bai", sample = samples)
+
 rule merge_bam_per_cluster:
-    input: expand("01split_bam/{sample}/{sample}_{{cluster_id}}.bam.bai", sample = SAMPLES)
+    input: get_merge_bam_input
     output: "01merged_bam/{cluster_id}.bam"
     params:
             bam = lambda wildcards, input: " ".join(input).replace(".bai", "")
@@ -293,9 +331,6 @@ rule recount:
         """
         scripts/rcbbc_v02 -w {config["white_list"]} -p {wildcards.sample} {input.bed} {input.bam} 
         """
-
-
-
 
 
 ######################################################################

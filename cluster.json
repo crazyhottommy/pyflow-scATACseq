@@ -33,8 +33,39 @@
     },
     "call_peaks":
     {
-        "time": "2:00:00",
+        "time": "1:00:00",
+        "n": 1,
+        "mem": 20960
+    },
+    "merge_bam_per_cluster":
+    {
+        "time" : "2:00:00",
+        "n" :2,
+        "mem" : 8000
+    },
+    "index_merged_bam":
+    {
+        "time" : "00:30:00",
+        "n" : 1,
+        "mem" : 4000
+    },
+    "make_merged_bigwig":
+    {
+        "time" : "4:00:00",
+        "n" : 5,
+        "mem": 20960
+    },
+    "sort_merge_bam_by_name":
+    {
+        "time" : "4:00:00",
+        "n" : 5,
+        "mem": 20960
+    },
+    "call_peaks_merge":
+    {
+        "time": "1:00:00",
         "n": 1,
         "mem": 20960
     }
+
 }
