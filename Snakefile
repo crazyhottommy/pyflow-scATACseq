@@ -18,7 +18,6 @@ def get_cluster_id(csv_file):
     with open(csv_file) as ifile:
         csv_reader = csv.reader(ifile, delimiter=',')
         # if there is a header, skip it by
-        # header = next(csv_reader)
         #skip header
         header = next(csv_reader)
         for row in csv_reader:
@@ -73,9 +72,9 @@ for k,v in map_sample_to_cluster.items():
 
  
 
-MERGED_BIGWIGS = expand("02merged_bigwigs/{cluster_id}.bw", cluster_id = CLUSTERS)
+MERGED_BIGWIGS = expand("02bigwigs_merge/{cluster_id}.bw", cluster_id = CLUSTERS)
 MERGED_EXTEND_SUMMIT = expand("06extend_summit_merge/{cluster_id}_extend_summit.bed", cluster_id = CLUSTERS )
-
+RECOUNT_ALL = expand("07recount_all/{sample}/{sample}.mtx", sample = SAMPLES)
 
 
 TARGET.extend(CLUSTERS_BAMS)
@@ -85,6 +84,7 @@ TARGET.extend(PEAKS)
 TARGET.extend(EXTEND_SUMMIT)
 TARGET.extend(MERGED_BIGWIGS)
 TARGET.extend(MERGED_EXTEND_SUMMIT)
+TARGET.extend(RECOUNT_ALL)
 rule all:
     input: TARGET
 
@@ -173,7 +173,7 @@ rule index_merged_bam:
 
 rule make_merged_bigwig:
     input: "01merged_bam/{cluster_id}.bam", "01merged_bam/{cluster_id}.bam.bai"
-    output: "02merged_bigwigs/{cluster_id}.bw"
+    output: "02bigwigs_merge/{cluster_id}.bw"
     log: "00log/{cluster_id}_make_merge_bigwig.log"
     threads: 5
     params:
@@ -187,7 +187,7 @@ rule make_merged_bigwig:
 
 rule sort_merge_bam_by_name:
     input: "01merged_bam/{cluster_id}.bam", "01merged_bam/{cluster_id}.bam.bai"
-    output:"03name_sorted_merge_bam/{cluster_id}.name.sorted.bam"
+    output:"03name_sorted_bam_merge/{cluster_id}.name.sorted.bam"
     log: "00log/{cluster_id}_name_sort_merge.log"
     threads: 5
     params:
@@ -201,7 +201,7 @@ rule sort_merge_bam_by_name:
         """
 
 rule call_peaks_merge:
-    input: "03name_sorted_merge_bam/{cluster_id}.name.sorted.bam"
+    input: "03name_sorted_bam_merge/{cluster_id}.name.sorted.bam"
     output: "04peak_merge/{cluster_id}_Genrich.bed"
     log: "00log/{cluster_id}_Genrich.log"
     threads: 1
@@ -300,7 +300,7 @@ rule extend_summit:
 
 ######################################################################
 
-########   merge all peaks and recount reads in peaks per cell #######
+##   merge all peaks per sample and recount reads in peaks per cell #######
 
 ######################################################################
 
@@ -324,14 +324,42 @@ rule merge_extend_summit:
 rule recount:
     input: bed = "07recount/{sample}/{sample}_merged_peaks.bed",
            bam = lambda wildcards: FILES[wildcards.sample][0]
-    output: "07recount/"
-    log: "00log/recount.log"
+    output: "07recount/{sample}/{sample}.mtx"
+    log: "00log/recount_{sample}.log"
+    params: white_list = lambda wildcards: FILES[wildcards.sample][2]
     threads: 1
     shell:
         """
-        scripts/rcbbc_v02 -w {config["white_list"]} -p {wildcards.sample} {input.bed} {input.bam} 
+        scripts/rcbbc_v02 -w {params.white_list} -p 07recount/{wildcards.sample}/{wildcards.sample} {input.bed} {input.bam} 
         """
 
+######################################################################
+
+########  merge all peaks for all samples and recount reads in peaks per cell #######
+
+######################################################################
+
+rule merge_extend_summit_all:
+    input: expand("06extend_summit_merge/{cluster_id}_extend_summit.bed", cluster_id = CLUSTERS)
+    output: "07recount_all/merged_peaks.bed"
+    threads: 1
+    shell:
+        """
+        cat {input} | sort -k1,1 -k2,2n | bedtools merge > {output}
+        """
+
+
+rule recount_all:
+    input: bed = "07recount_all/merged_peaks.bed", 
+           bam = lambda wildcards: FILES[wildcards.sample][0]
+    output: "07recount_all/{sample}/{sample}.mtx"
+    log: "00log/recount_all_{sample}.log"
+    params: white_list = lambda wildcards: FILES[wildcards.sample][2]
+    threads: 1
+    shell:
+        """
+        scripts/rcbbc_v02 -w {params.white_list} -p 07recount_all/{wildcards.sample}/{wildcards.sample} {input.bed} {input.bam} 
+        """
 
 ######################################################################
 

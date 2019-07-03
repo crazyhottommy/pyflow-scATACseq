@@ -21,8 +21,10 @@ with open(args.meta) as ifile:
         sample = row[0]
         bam_path = row[1]
         cluster = row[2]
+        white_list = row[3]
         FILES[sample].append(bam_path)
         FILES[sample].append(cluster)
+        FILES[sample].append(white_list)
 
 sample_num = len(FILES.keys())
 print ("total {} unique samples will be processed".format(sample_num))
