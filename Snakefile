@@ -137,7 +137,6 @@ rule make_bigwig:
 
 ###  merge bam files for the same cluster from different samples ####
 ### different samples are merged together for cluster identification ##
-### so all the samples have the same number of clusters    ############
 
 ######################################################################
 
