@@ -55,7 +55,7 @@ CLUSTERS = sorted(set(CLUSTERS))
 
 
 ## some clusters only present in certain samples, when merge the same cluster from different 
-## samples, this need to be taken care of.
+## samples, this needs to be taken care of.
 
 ## e.g.
 ## {'A':['1','2','3'], 'B':['1','2'], 'C':['1']}
@@ -316,8 +316,8 @@ rule merge_extend_summit:
     output: "07recount/{sample}/{sample}_merged_peaks.bed"
     shell:
         """
-        
-        cat {input} | sort -k1,1 -k2,2n | bedtools merge > {output}
+        # get rid of unconventional chromosomes and natural sort the chr (chr10 after chr9)
+        cat {input} | grep -v "_" | sort -k1,1V -k2,2n | bedtools merge > {output}
 
         """
 
@@ -330,7 +330,7 @@ rule recount:
     threads: 1
     shell:
         """
-        scripts/rcbbc_v02 -w {params.white_list} -p 07recount/{wildcards.sample}/{wildcards.sample} {input.bed} {input.bam} 
+        scripts/rcbbc -w {params.white_list} -p 07recount/{wildcards.sample}/{wildcards.sample} {input.bed} {input.bam} 
         """
 
 ######################################################################
@@ -358,7 +358,7 @@ rule recount_all:
     threads: 1
     shell:
         """
-        scripts/rcbbc_v02 -w {params.white_list} -p 07recount_all/{wildcards.sample}/{wildcards.sample} {input.bed} {input.bam} 
+        scripts/rcbbc -w {params.white_list} -p 07recount_all/{wildcards.sample}/{wildcards.sample} {input.bed} {input.bam} 
         """
 
 ######################################################################
