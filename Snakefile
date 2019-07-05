@@ -344,7 +344,8 @@ rule merge_extend_summit_all:
     threads: 1
     shell:
         """
-        cat {input} | sort -k1,1 -k2,2n | bedtools merge > {output}
+        # remove unconventional chromosomes and natural sort by -V
+        cat {input} | grep -v "_" | sort -k1,1V -k2,2n | bedtools merge > {output}
         """
 
 
