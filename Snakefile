@@ -75,7 +75,7 @@ for k,v in map_sample_to_cluster.items():
 MERGED_BIGWIGS = expand("02bigwigs_merge/{cluster_id}.bw", cluster_id = CLUSTERS)
 MERGED_EXTEND_SUMMIT = expand("06extend_summit_merge/{cluster_id}_extend_summit.bed", cluster_id = CLUSTERS )
 RECOUNT_ALL = expand("07recount_all/{sample}/{sample}.mtx", sample = SAMPLES)
-
+RECOUNT = expand("07recount/{sample}/{sample}.mtx", sample = SAMPLES)
 
 TARGET.extend(CLUSTERS_BAMS)
 TARGET.extend(CLUSTERS_BAIS)
@@ -84,7 +84,10 @@ TARGET.extend(PEAKS)
 TARGET.extend(EXTEND_SUMMIT)
 TARGET.extend(MERGED_BIGWIGS)
 TARGET.extend(MERGED_EXTEND_SUMMIT)
-TARGET.extend(RECOUNT_ALL)
+if config['recount_all']:
+    TARGET.extend(RECOUNT_ALL)
+TARGET.extend(RECOUNT)
+
 rule all:
     input: TARGET
 
@@ -316,7 +319,7 @@ rule merge_extend_summit:
     shell:
         """
         # get rid of unconventional chromosomes and natural sort the chr (chr10 after chr9)
-        cat {input} | grep -v "_" | sort -k1,1V -k2,2n | bedtools merge > {output}
+        cat {input} | sort -k1,1V -k2,2n | bedtools merge | grep -v "_"  > {output}
 
         """
 

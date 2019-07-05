@@ -10,5 +10,7 @@ black_list: "data/mm10.blacklist.bed.gz"
 genome_size: data/mm10_chrom_size.txt
 extend_size: 250
 
-### single-cell white-list for recounting
-white_list: barcodes.tsv
+## if the samples are clustered together and you want to call peaks for the merged bam from the same cluster
+## and recount the reads in peaks for each cell across samples, set this to True
+recount_all: True
+
