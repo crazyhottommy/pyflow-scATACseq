@@ -1,0 +1,12 @@
+{
+    "VirginMale": [
+        "/n/scratchlfs/informatics/mtang/VirginMales/outs/possorted_bam.bam",
+        "/n/scratchlfs/informatics/mtang/virginMale_clusters_label_transfer.csv",
+        "/n/scratchlfs/informatics/mtang/virginMale_whitelist.txt"
+    ],
+    "father": [
+        "/n/scratchlfs/informatics/mtang/Fathers/outs/possorted_bam.bam",
+        "/n/scratchlfs/informatics/mtang/father_clusters_label_transfer.csv",
+        "/n/scratchlfs/informatics/mtang/father_whitelist.txt"
+    ]
+}
