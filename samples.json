@@ -1,0 +1,12 @@
+{
+    "sample1": [
+        "/path/to/sample1", 
+        "/path/to/cluster_sample1.csv", 
+        "/path/to/white_list_sample1.txt"
+    ], 
+    "sample2": [
+        "/path/to/sample2", 
+        "/path/to/cluster_sample2.csv", 
+        "/path/to/white_list_sample2.txt"
+    ]
+}
