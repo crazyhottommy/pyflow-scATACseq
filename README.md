@@ -18,7 +18,7 @@ In the future, the peak calling software should be barcode aware, so one does no
 
 * [snakemake](https://snakemake.readthedocs.io/en/stable/) >=5.4.5. Note snakemake is python3 based.
 * [deeptools](https://deeptools.readthedocs.io/en/develop/) >= 3.1.3. We use `bamCoverage` from it to make bigwig files.
-* [Genrich](https://github.com/jsh58/Genrich) for calling peaks. It implements ATACseq peak calling with internal -4/+5bp shifting. Develped by John, our previous group member at [Harvard FAS informatics](https://informatics.fas.harvard.edu/).
+* [Genrich](https://github.com/jsh58/Genrich) for calling peaks. It implements ATACseq peak calling with internal +4/-5bp shifting. Develped by John, our previous group member at [Harvard FAS informatics](https://informatics.fas.harvard.edu/).
 * [bedtools](https://bedtools.readthedocs.io/en/latest/) >= 2.27.1 for manipulating bed files.
 * [samtools](http://www.htslib.org/) >=1.9 for manipupating bam files.
 
