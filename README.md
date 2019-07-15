@@ -6,6 +6,33 @@ snakemake workflow for post-processing scATACseq data
 for single cell ATACseq experiment, one gets a merged bam file for all cells. After going through clustering, one groups similar cells into cell types (cell states). This workflow will split the bam by clusters to create a pseudo bulk bam for each cluster, create bigwig tracks for visulization, call peaks for each cluster and merge the peaks across the clusters. Finally it will count reads per peak per cell from the original bam file on the merged peaks.
 
 Thanks [Brent Pedersen](https://github.com/brentp) for the `rcbbc` (Read Count By BarCode) in the scripts folder.
+This script can be very useful in general. It counts the number of reads per cell in regions specified in a bed format from the bam file, which contains `CB` tag for each cell. The code is written in `nim` and is super fast. For over 1 million regions for over 8000 cells in a ~64G bam, it took ~40 mins.
+
+
+```bash 
+./rcbbc -h
+rcbbc
+
+read-count by barcode
+
+Usage:
+  rcbbc [options] bed bam
+
+Arguments:
+  bed
+  bam
+
+Options:
+  -f, --fasta=FASTA          path to fasta. required only for CRAM
+  -e, --exclude=EXCLUDE      exclude alignments with any of these bits set (default: 1796)
+  -m, --min-mapping-quality=MIN_MAPPING_QUALITY
+                             exclude alignments with a mapping-quality below this (default: 1)
+  -w, --white-list=WHITE_LIST
+                             line-delimited list of barcodes to include. default is to include any seen in the bam
+  -t, --tag=TAG              tag on which to partition read-counts (default: CB)
+  -p, --prefix=PREFIX        output prefix for files written by rcbbc (default: rcbbc)
+  -h, --help                 Show this help
+```
 
 In the future, the peak calling software should be barcode aware, so one does not need to split the bam file by cluster. But for now, I have this work for me.
 
