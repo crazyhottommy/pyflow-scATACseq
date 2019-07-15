@@ -102,9 +102,9 @@ snakemake -j 10
 
 ### To-do list
 
-- [] Have a conda env set up for the Snakefile.  
-- [] have a docker container.  
-- [] Motif analysis.  
+- [ ] Have a conda env set up for the Snakefile.  
+- [ ] have a docker container.  
+- [ ] Motif analysis.  
 
 
 ### Other Notes 
