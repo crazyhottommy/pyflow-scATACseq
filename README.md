@@ -132,6 +132,9 @@ snakemake -j 10
 - [ ] Have a conda env set up for the Snakefile.  
 - [ ] have a docker container.  
 - [ ] Motif analysis.  
+- [ ] Find differential peaks using presto.
+- [ ] Associating peaks with genes using Cicero
+- [ ] Gene set enrichment
 
 
 ### Other Notes 
