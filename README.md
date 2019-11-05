@@ -63,13 +63,18 @@ cd pyflow-scATACseq
 
 | sample  | bam_path         | cluster_id.csv               | white_list                      | 
 |---------|------------------|------------------------------|---------------------------------| 
-| sample1 | /path/to/sample1 | /path/to/cluster_sample1.csv | /path/to/white_list_sample1.txt | 
-| sample2 | /path/to/sample2 | /path/to/cluster_sample2.csv | /path/to/white_list_sample2.txt | 
+| sample1 | /path/to/sample1.bam | /path/to/sample1.csv | /path/to/white_list_sample1.txt | 
+| sample2 | /path/to/sample2.bam | /path/to/sample2.csv | /path/to/white_list_sample2.txt | 
 
 
   * The first column is the sample name.  
   * The second column is the path to the `10x cellranger_atac` produced `possorted_bam.bam`  
   * The `cluster_id.csv` is a two column csv file **with** header (does not matter what name you give). The first column is the cell barcode, the second column is the cluster id (can be numeric or strings).
+
+** make sure the cluster_id.csv is named exactly as sample.csv **
+
+if the sample column is sample1, it should be sample1.csv for the cluster information csv file.
+
 
 ```
 cat example_cluster.csv
@@ -129,6 +134,7 @@ snakemake -j 10
 
 ### To-do list
 
+- [ ] check file paths exist and format.
 - [ ] Have a conda env set up for the Snakefile.  
 - [ ] have a docker container.  
 - [ ] Motif analysis.  
