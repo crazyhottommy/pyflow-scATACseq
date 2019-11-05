@@ -76,6 +76,8 @@ MERGED_BIGWIGS = expand("02bigwigs_merge/{cluster_id}.bw", cluster_id = CLUSTERS
 MERGED_EXTEND_SUMMIT = expand("06extend_summit_merge/{cluster_id}_extend_summit.bed", cluster_id = CLUSTERS )
 RECOUNT_ALL = expand("07recount_all/{sample}/{sample}.mtx", sample = SAMPLES)
 RECOUNT = expand("07recount/{sample}/{sample}.mtx", sample = SAMPLES)
+DIFFPEAKS = expand("08diff_peaks/{sample}/{sample}_differential_accessible_peaks.txt", sample =SAMPLES)
+
 
 TARGET.extend(CLUSTERS_BAMS)
 TARGET.extend(CLUSTERS_BAIS)
@@ -84,8 +86,11 @@ TARGET.extend(PEAKS)
 TARGET.extend(EXTEND_SUMMIT)
 TARGET.extend(MERGED_BIGWIGS)
 TARGET.extend(MERGED_EXTEND_SUMMIT)
+TARGET.extend(DIFFPEAKS)
+
 if config['recount_all']:
     TARGET.extend(RECOUNT_ALL)
+    TARGET.append("08diff_peaks_all/all_sample_differential_accessible_peaks.txt")
 TARGET.extend(RECOUNT)
 
 rule all:
@@ -270,6 +275,7 @@ rule call_peaks:
     threads: 1
     params:
         custom = config.get("Generich_args", "")
+    message: "calling peaks for {input}"
     shell:
        """
        Genrich -t {input} -o {output} {params.custom} 2> {log}
@@ -330,6 +336,7 @@ rule recount:
     log: "00log/recount_{sample}.log"
     params: white_list = lambda wildcards: FILES[wildcards.sample][2]
     threads: 1
+    message: "recouting reads per peak for {input}"
     shell:
         """
         scripts/rcbbc -w {params.white_list} -p 07recount/{wildcards.sample}/{wildcards.sample} {input.bed} {input.bam} 
@@ -359,9 +366,51 @@ rule recount_all:
     log: "00log/recount_all_{sample}.log"
     params: white_list = lambda wildcards: FILES[wildcards.sample][2]
     threads: 1
+    message: "recouting reads per peak for {input}"
     shell:
         """
         scripts/rcbbc -w {params.white_list} -p 07recount_all/{wildcards.sample}/{wildcards.sample} {input.bed} {input.bam} 
+        """
+
+######################################################################
+
+########         Find differential peaks using presto            #####
+
+######################################################################
+
+rule presto:
+    input: mtx = "07recount/{sample}/{sample}.mtx",
+           csv = lambda wildcards: FILES[wildcards.sample][1]
+    output: "08diff_peaks/{sample}/{sample}_differential_accessible_peaks.txt"
+    singularity: "docker://crazyhottommy/seuratv3_presto"
+    log: "00log/diff_peaks_{sample}.log"
+    message: "Finding differential peaks using {input} "
+    shell:
+        """
+        Rscript scripts/presto.R --mtx {input.mtx} --cluster {input.csv} {output}
+        """
+
+
+rule presto_all:
+    input: mtxs = expand("07recount_all/{sample}/{sample}.mtx", sample = SAMPLES),
+           csvs = [FILES[sample][1] for sample in SAMPLES]
+    output: "08diff_peaks_all/all_sample_differential_accessible_peaks.txt"
+    singularity: "docker://crazyhottommy/seuratv3_presto"
+    log: "00log/diff_peaks_all_sample.log"
+    message: "Finding differential peaks using {input} "
+    shell:
+        """
+        mtxs=""
+        for mtx in {input.mtxs}; do
+            mtxs+=" --mtx=$mtx"
+        done
+
+        csvs=""
+        for csv in {input.csvs}; do
+            csvs+=" --cluster=$csv"
+        done
+
+        Rscript scripts/presto.R $mtxs $csvs {output}> {log} 2>&1 
         """
 
 ######################################################################
