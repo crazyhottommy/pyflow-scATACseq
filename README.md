@@ -106,12 +106,12 @@ python sample2json.py meta.tsv
 cat samples.json
 {
     "sample1": [
-        "/path/to/sample1",
+        "/path/to/sample1.bam",
         "/path/to/sample1.csv",
         "/path/to/white_list_sample1.txt"
     ],
     "sample2": [
-        "/path/to/sample2",
+        "/path/to/sample2.bam",
         "/path/to/sample2.csv",
         "/path/to/white_list_sample2.txt"
     ]
