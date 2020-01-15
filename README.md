@@ -71,9 +71,9 @@ cd pyflow-scATACseq
   * The second column is the path to the `10x cellranger_atac` produced `possorted_bam.bam`  
   * The `cluster_id.csv` is a two column csv file **with** header (does not matter what name you give). The first column is the cell barcode, the second column is the cluster id (can be numeric or strings).
 
-**make sure the cluster_id.csv is named exactly as sample.csv**
+**make sure the cluster_id.csv is named exactly as sample.csv**. 
 
-if the sample column is sample1, it should be sample1.csv for the cluster information csv file.
+e.g. if the sample column is sample1, it should be sample1.csv for the cluster information csv file.
 
 
 ```
@@ -94,7 +94,7 @@ AAACTCGCAGTAGGCA-1,24
 you can create it by:
 
 ```bash
-cat example_cluster.csv | cut -f, -d1 | sed '1d' > example_white_list.txt
+cat example_cluster.csv | cut -f1 -d, | sed '1d' > example_white_list.txt
 ```
 
 2. Create a `samples.json` file:
