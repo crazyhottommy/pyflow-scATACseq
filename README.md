@@ -127,6 +127,10 @@ snakemake -np
 ## real-run on local machine
 snakemake -j 10
 
+
+## if you want to use a singularity image that contains presto for differential accessible test
+snakemake -j 10 --use-singularity
+
 ## submit to slurm (you can change this script for your own HPC)
 ./pyflow-scATACseq.sh 
 ```
