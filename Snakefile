@@ -91,6 +91,7 @@ TARGET.extend(DIFFPEAKS)
 if config['recount_all']:
     TARGET.extend(RECOUNT_ALL)
     TARGET.append("08diff_peaks_all/all_sample_differential_accessible_peaks.txt")
+    TARGET.append("08diff_peaks_all/filtered_peaks.rds")
 TARGET.extend(RECOUNT)
 
 rule all:
@@ -382,7 +383,7 @@ rule presto:
     input: mtx = "07recount/{sample}/{sample}.mtx",
            csv = lambda wildcards: FILES[wildcards.sample][1]
     output: "08diff_peaks/{sample}/{sample}_differential_accessible_peaks.txt"
-    singularity: "docker://crazyhottommy/seuratv3_presto"
+    singularity: "docker://crazyhottommy/pyflow_scatac"
     log: "00log/diff_peaks_{sample}.log"
     message: "Finding differential peaks using {input} "
     shell:
@@ -395,7 +396,7 @@ rule presto_all:
     input: mtxs = expand("07recount_all/{sample}/{sample}.mtx", sample = SAMPLES),
            csvs = [FILES[sample][1] for sample in SAMPLES]
     output: "08diff_peaks_all/all_sample_differential_accessible_peaks.txt"
-    singularity: "docker://crazyhottommy/seuratv3_presto"
+    singularity: "docker://crazyhottommy/pyflow_scatac"
     log: "00log/diff_peaks_all_sample.log"
     message: "Finding differential peaks using {input} "
     shell:
@@ -412,6 +413,52 @@ rule presto_all:
 
         Rscript scripts/presto.R $mtxs $csvs {output}> {log} 2>&1 
         """
+
+
+######################################################################
+
+########         Filter differential accessible regions         #######
+
+######################################################################
+
+rule filter_diff_region_all:
+    input: presto_out = "08diff_peaks_all/all_sample_differential_accessible_peaks.txt",
+           cell_number = config["cell_number"]
+    output: rds = "08diff_peaks_all/filtered_peaks.rds"
+    singularity: "docker://crazyhottommy/pyflow_scatac"
+    log: "00log/diff_peaks_all_sample_filter.log"
+    threads: 24
+    params:
+           workers = config.get("presto_filter_workers", ""),
+           n = config.get("presto_filter_n", ""),
+           pct_in_cutoff = config.get("presto_filter_pct.in.cutoff", ""),
+           pct_each_out_cutoff = config.get("presto_filter_pct.each.out.cutoff", "")
+           max_num_off_target_cells = config.get("presto_filter_max.num.off.target.cells", "")
+           pct_out_cutoff = config.get("presto_filter_pct.out.cutoff", "")
+           padj_cutoff = config.get("presto_filter_padj.cutoff", "")
+
+    message: "filtering differential peaks using {input} "
+    shell:
+        """
+        Rscript scripts/presto_filter.R --presto={input.presto_out} --cellnumber={input.cell_number} \
+        --workers={params.workers} --n={params.n} --pct.in.cutoff={params.pct_in_cutoff} \
+        --pct.each.out.cutoff={params.pct_each_out_cutoff} \
+        --max.num.off.target.cells={params.max_num_off_target_cells} \
+        --pct.out.cutoff={params.pct_out_cutoff} --padj.cutoff={params.padj_cutoff} {output}
+        """
+
+
+######################################################################
+
+########         motif enrichment analysis using Homer         #######
+
+######################################################################
+
+
+
+
+
+
 
 ######################################################################
 

@@ -14,3 +14,11 @@ extend_size: 250
 ## and recount the reads in peaks for each cell across samples, set this to True
 recount_all: True
 
+## parameters for filtering presto  result see scripts/presto_filter.R
+presto_filter_workers : 10
+presto_filter_n: 2
+presto_filter_pct.in.cutoff: 20
+presto_filter_pct.each.out.cutoff: 10
+presto_filter_max.num.off.target.cells: 100
+presto_filter_pct.out.cutoff: 20
+presto_filter_padj.cutoff: 0.05
