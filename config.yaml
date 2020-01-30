@@ -22,3 +22,6 @@ presto_filter_pct.each.out.cutoff: 10
 presto_filter_max.num.off.target.cells: 100
 presto_filter_pct.out.cutoff: 20
 presto_filter_padj.cutoff: 0.05
+
+## cell_number tsv file with 2 columns, column 1 is the cluster id, column2 is the number of cells in each cluster
+cell_number: "/n/scratchlfs02/informatics/mtang/cell_number.tsv"

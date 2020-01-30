@@ -432,9 +432,9 @@ rule filter_diff_region_all:
            workers = config.get("presto_filter_workers", ""),
            n = config.get("presto_filter_n", ""),
            pct_in_cutoff = config.get("presto_filter_pct.in.cutoff", ""),
-           pct_each_out_cutoff = config.get("presto_filter_pct.each.out.cutoff", "")
-           max_num_off_target_cells = config.get("presto_filter_max.num.off.target.cells", "")
-           pct_out_cutoff = config.get("presto_filter_pct.out.cutoff", "")
+           pct_each_out_cutoff = config.get("presto_filter_pct.each.out.cutoff", ""),
+           max_num_off_target_cells = config.get("presto_filter_max.num.off.target.cells", ""),
+           pct_out_cutoff = config.get("presto_filter_pct.out.cutoff", ""),
            padj_cutoff = config.get("presto_filter_padj.cutoff", "")
 
     message: "filtering differential peaks using {input} "
