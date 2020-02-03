@@ -35,7 +35,7 @@ options(future.globals.maxSize = 1000 * 1024^2)
 
 filter_atac_per_peak<- function(df, cell_number, n = 2, pct.each.out.cutoff = 10, max.num.off.target.cells = 10){
         df<- inner_join(df, cell_number, by = c("group" = "cluster_id"))
-        df %>%
+        df<- df %>%
                 mutate(num_cells = pct_in * num/100)
         num_cluster_off_cells<- sum(df$num_cells >= max.num.off.target.cells)
         num_clusters<- sum(df$pct_in >= pct.each.out.cutoff)
