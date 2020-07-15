@@ -1,6 +1,8 @@
 # pyflow-scATACseq
 snakemake workflow for post-processing scATACseq data
 
+cite [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3946832.svg)](https://doi.org/10.5281/zenodo.3946832) if you use it:)
+
 ### What does it do?
 
 for single cell ATACseq experiment, one gets a merged bam file for all cells. After going through clustering, one groups similar cells into cell types (cell states). This workflow will split the bam by clusters to create a pseudo bulk bam for each cluster, create bigwig tracks for visulization, call peaks for each cluster and merge the peaks across the clusters. Finally it will count reads per peak per cell from the original bam file on the merged peaks.
